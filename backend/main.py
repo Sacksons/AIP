@@ -55,7 +55,6 @@ def get_current_admin(current_user: User = Depends(get_current_user)):
     return current_user
 app = FastAPI()
 
-Base.metadata.create_all(bind=engine)
 
 class AdminReview(BaseModel):
     notes: Optional[str] = None
@@ -68,6 +67,10 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_project)
     return db_project
+    
+@app.on_event("startup")
+def on_startup() -> None:
+    Base.metadata.create_all(bind=engine)
 
 
 @app.get("/projects/")
