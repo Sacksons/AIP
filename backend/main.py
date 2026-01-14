@@ -25,6 +25,8 @@ REDIS_URL = os.getenv("REDIS_URL")       # e.g. redis://...
 
 es = Elasticsearch(ES_URL) if ES_URL else None
 r = redis.Redis.from_url(REDIS_URL) if REDIS_URL else None
+if es is None:
+    return {"error": "Elasticsearch not configured"}
 
 import json
 
