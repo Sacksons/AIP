@@ -29,6 +29,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 SECRET_KEY = "your-secret-key"  # Use env var in prod
 ALGORITHM = "HS256"
 
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+
+_static_dir = Path(__file__).resolve().parent / "static"
+if _static_dir.exists():
+    app.mount("/", StaticFiles(directory=str(_static_dir), html=True), name="frontend")
+
 def get_password_hash(password):
     return pwd_context.hash(password)
 
