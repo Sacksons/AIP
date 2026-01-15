@@ -398,3 +398,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 def search_projects(q: str):
     res = es.search(index="projects", body={"query": {"multi_match": {"query": q, "fields": ["name", "sector", "country"]}}})
     return [hit['_source'] for hit in res['hits']['hits']]
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+
+_static_dir = Path(__file__).resolve().parent / "static"
+if _static_dir.exists():
+    app.mount("/", StaticFiles(directory=str(_static_dir), html=True), name="frontend")
