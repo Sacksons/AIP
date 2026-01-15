@@ -68,6 +68,13 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_project)
     return db_project
+@app.get("/")
+def root():
+    return {"message": "API is running"}
+
+@app.get("/health")
+def health():
+    return {"ok": True}
 
 
 @app.get("/projects/")
