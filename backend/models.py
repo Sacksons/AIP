@@ -1,15 +1,32 @@
-from sqlalchemy import Column, Integer, String, Numeric, Date, Float, DateTime, ForeignKey, JSON, Boolean, Text, func
-from sqlalchemy.orm import relationship, declarative_base
+from __future__ import annotations
 
-Base = declarative_base()
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    JSON,
+    Numeric,
+    String,
+    Text,
+    func,
+)
+from sqlalchemy.orm import relationship
+
+from .database import Base
+
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(100), unique=True, nullable=False)
+    username = Column(String(100), unique=True, nullable=False, index=True)
     hashed_password = Column(String(255), nullable=False)
-    role = Column(String(20), nullable=False)
+    role = Column(String(20), nullable=False, default="user")
+
 
 class Project(Base):
     __tablename__ = "projects"
@@ -44,5 +61,3 @@ class Project(Base):
     bankability_score = Column(Float, default=0.0)
     last_verified = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=func.now())
-
-# ... add other models like Investor, etc., if needed

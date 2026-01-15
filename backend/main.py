@@ -16,18 +16,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from fastapi.security import OAuth2PasswordBearer
-import os
 from elasticsearch import Elasticsearch
+es = Elasticsearch("http://localhost:9200")
 import redis
-
-ES_URL = os.getenv("ELASTICSEARCH_URL")  # e.g. https://...
-REDIS_URL = os.getenv("REDIS_URL")       # e.g. redis://...
-
-es = Elasticsearch(ES_URL) if ES_URL else None
-r = redis.Redis.from_url(REDIS_URL) if REDIS_URL else None
-if es is None:
-    return {"error": "Elasticsearch not configured"}
-
 import json
 
 r = redis.Redis(host='localhost', port=6379, db=0)
@@ -64,6 +55,7 @@ def get_current_admin(current_user: User = Depends(get_current_user)):
     return current_user
 app = FastAPI()
 
+Base.metadata.create_all(bind=engine)
 
 class AdminReview(BaseModel):
     notes: Optional[str] = None
@@ -76,10 +68,6 @@ def create_project(project: ProjectCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(db_project)
     return db_project
-    
-@app.on_event("startup")
-def on_startup() -> None:
-    Base.metadata.create_all(bind=engine)
 
 
 @app.get("/projects/")
