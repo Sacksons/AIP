@@ -1,64 +1,171 @@
-SQLAlchemy models.
-"""
+# models.py
+from sqlalchemy import Column, Integer, String, Float, Date, Enum as SQLEnum, ForeignKey, Boolean, DateTime
+from sqlalchemy.orm import relationship
+from backend.database import Base  # Import once
+from enum import Enum as PyEnum
+import datetime  # Change to this to avoid shadowing
 
-from __future__ import annotations
+class Sector(PyEnum):
+    ENERGY = "Energy"
+    MINING = "Mining"
+    WATER = "Water"
+    TRANSPORT = "Transport"
+    PORTS = "Ports"
+    RAIL = "Rail"
+    ROADS = "Roads"
+    AGRICULTURE = "Agriculture"
+    HEALTH = "Health"
 
-from sqlalchemy import Column, Date, DateTime, Float, Integer, Numeric, String, Text, func
+class ProjectStage(PyEnum):
+    CONCEPT = "Concept"
+    FEASIBILITY = "Feasibility"
+    PROCUREMENT = "Procurement"
+    CONSTRUCTION = "Construction"
+    OPERATION = "Operation"
 
-from database import Base
+class VerificationLevel(PyEnum):
+    V0_SUBMITTED = "V0: Submitted"
+    V1_SPONSOR_VERIFIED = "V1: Sponsor Identity Verified"
+    V2_DOCUMENTS_VERIFIED = "V2: Documents Verified"
+    V3_BANKABILITY_SCREENED = "V3: Bankability Screened"
 
-
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(100), unique=True, nullable=False)
-    hashed_password = Column(String(255), nullable=False)
-    role = Column(String(20), nullable=False)
-
+class Instrument(PyEnum):
+    EQUITY = "Equity"
+    DEBT = "Debt"
+    MEZZANINE = "Mezzanine"
 
 class Project(Base):
     __tablename__ = "projects"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String, index=True)
+    sector = Column(SQLEnum(Sector))
+    country = Column(String)
+    region = Column(String, nullable=True)
+    gps_location = Column(String, nullable=True)
+    stage = Column(SQLEnum(ProjectStage))
+    estimated_capex = Column(Float)
+    funding_gap = Column(Float, nullable=True)
+    timeline_fid = Column(Date, nullable=True)
+    timeline_cod = Column(Date, nullable=True)
+    revenue_model = Column(String)
+    offtaker = Column(String, nullable=True)
+    tariff_mechanism = Column(String, nullable=True)
+    concession_length = Column(Integer, nullable=True)
+    fx_exposure = Column(String, nullable=True)
+    political_risk_mitigation = Column(String, nullable=True)
+    sovereign_support = Column(String, nullable=True)
+    technology = Column(String, nullable=True)
+    epc_status = Column(String, nullable=True)
+    land_acquisition_status = Column(String, nullable=True)
+    esg_category = Column(String, nullable=True)
+    permits_status = Column(String, nullable=True)
+    attachments = Column(String, nullable=True)  # JSON string for dict
+    created_at = Column(Date, default=datetime.date.today)
+    updated_at = Column(Date, default=datetime.date.today)
+    timeline_fid = Column(Date, nullable=True)
+    timeline_cod = Column(Date, nullable=True)
+    created_at = Column(Date, default=datetime.date.today)
+    updated_at = Column(Date, default=datetime.date.today)
 
-    sector = Column(String(50))
-    country = Column(String(100))
-    gps_location = Column(String(100))
-    stage = Column(String(50))
+class Verification(Base):
+    __tablename__ = "verifications"
 
-    capex = Column(Numeric(15, 2))
-    funding_gap = Column(Numeric(15, 2))
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    level = Column(SQLEnum(VerificationLevel))
+    technical_readiness = Column(Integer, nullable=True)
+    financial_robustness = Column(Integer, nullable=True)
+    legal_clarity = Column(Integer, nullable=True)
+    esg_compliance = Column(Integer, nullable=True)
+    overall_score = Column(Float, nullable=True)
+    risk_flags = Column(String, nullable=True)  # Comma-separated
+    last_verified = Column(Date)
 
-    timeline_fid = Column(Date)
-    timeline_cod = Column(Date)
+    project = relationship("Project")
+    last_verified = Column(Date)
 
-    revenue_model = Column(String(100))
-    offtaker = Column(String(255))
-    tariff = Column(Text)
+class Investor(Base):
+    __tablename__ = "investors"
 
-    concession_length = Column(Integer)
+    id = Column(Integer, primary_key=True)
+    fund_name = Column(String)
+    aum = Column(Float, nullable=True)
+    ticket_size_min = Column(Float)
+    ticket_size_max = Column(Float)
+    instruments = Column(String)  # Comma-separated enums
+    target_irr = Column(Float, nullable=True)
+    country_focus = Column(String)  # Comma-separated
+    sector_focus = Column(String)  # Comma-separated
+    esg_constraints = Column(String, nullable=True)
 
-    fx_exposure = Column(Text)
-    political_risk = Column(Text)
-    sovereign_support = Column(Text)
+class Introduction(Base):
+    __tablename__ = "introductions"
 
-    technology = Column(String(100))
-    epc_status = Column(String(50))
-    land_acquisition_status = Column(Text)
+    id = Column(Integer, primary_key=True)
+    investor_id = Column(Integer, ForeignKey("investors.id"))
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    message = Column(String, nullable=True)
+    nda_executed = Column(Integer, default=0)  # Boolean as int
+    sponsor_approved = Column(Integer, default=0)
+    status = Column(String, default="Pending")
 
-    esg_category = Column(String(50))
-    permits_status = Column(Text)
+    investor = relationship("Investor")
+    project = relationship("Project")
 
-    teaser_url = Column(String(255))
-    feasibility_study_url = Column(String(255))
-    financial_model_url = Column(String(255))
-    concession_summary_url = Column(String(255))
+# models.py (add after existing classes)
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime
+from sqlalchemy.orm import relationship
 
-    verification_level = Column(Integer, default=0)
-    bankability_score = Column(Float, default=0.0)
-    last_verified = Column(DateTime, nullable=True)
+class DataRoom(Base):
+    __tablename__ = "data_rooms"
 
-    created_at = Column(DateTime, default=func.now())
-PY
+    id = Column(Integer, primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id"))
+    nda_required = Column(Boolean, default=True)
+    access_users = Column(String, nullable=True)  # Comma-separated user IDs
+    documents = Column(String, nullable=True)  # JSON of {"name": "S3_key"}
+    created_at = Column(DateTime, default=datetime.datetime.now)
+
+    project = relationship("Project")
+
+class AnalyticReport(Base):
+    __tablename__ = "analytic_reports"
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    sector = Column(SQLEnum(Sector), nullable=True)
+    country = Column(String, nullable=True)
+    content = Column(String)  # JSON or markdown for dashboards/league tables
+    created_at = Column(DateTime, default=datetime.datetime.now)
+
+class Event(Base):
+    __tablename__ = "events"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    description = Column(String)
+    date = Column(Date)
+    type = Column(String)  # e.g., "Roundtable", "Forum"
+    projects_involved = Column(String, nullable=True)  # Comma-separated project IDs
+    event_date = Column(Date)
+# models.py (add)
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    role = Column(String)  # e.g., "admin", "investor", "sponsor"
+
+# models.py (update Event class)
+class Event(Base):
+    __tablename__ = 'events'  # Ensure unique tablename if needed
+    __table_args__ = {'extend_existing': True}  # This line fixes the redefinition error
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    description = Column(String)
+    event_date = Column(Date)
+    type = Column(String)
+    projects_involved = Column(String, nullable=True)

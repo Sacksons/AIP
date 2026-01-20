@@ -1,58 +1,190 @@
-Pydantic schemas for API IO.
-"""
-
-from __future__ import annotations
-
-from datetime import date, datetime
-from typing import Optional
-
-from pydantic import BaseModel, ConfigDict, Field
-
+# schemas.py
+from datetime import date, datetime  # Make sure this line is at the top
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict
+from enum import Enum
+import datetime
+from backend.models import Sector, ProjectStage, VerificationLevel, Instrument
 
 class ProjectBase(BaseModel):
-    name: Optional[str] = None
-    sector: Optional[str] = None
-    country: Optional[str] = None
+    name: str = Field(..., description="Project name")
+    sector: Sector
+    country: str
+    region: Optional[str] = None
     gps_location: Optional[str] = None
-    stage: Optional[str] = None
-
-    capex: Optional[float] = None
+    stage: ProjectStage
+    estimated_capex: float
     funding_gap: Optional[float] = None
-
-    timeline_fid: Optional[date] = None
-    timeline_cod: Optional[date] = None
-
-    revenue_model: Optional[str] = None
+    timeline_fid: Optional[datetime.date] = None
+    timeline_cod: Optional[datetime.date] = None
+    revenue_model: str
     offtaker: Optional[str] = None
-    tariff: Optional[str] = None
-
+    tariff_mechanism: Optional[str] = None
     concession_length: Optional[int] = None
     fx_exposure: Optional[str] = None
-    political_risk: Optional[str] = None
+    political_risk_mitigation: Optional[str] = None
     sovereign_support: Optional[str] = None
-
     technology: Optional[str] = None
     epc_status: Optional[str] = None
     land_acquisition_status: Optional[str] = None
     esg_category: Optional[str] = None
     permits_status: Optional[str] = None
-
-    teaser_url: Optional[str] = None
-    feasibility_study_url: Optional[str] = None
-    financial_model_url: Optional[str] = None
-    concession_summary_url: Optional[str] = None
-
+    attachments: Optional[Dict[str, str]] = None
 
 class ProjectCreate(ProjectBase):
-    name: str = Field(..., min_length=1)
-
+    pass
 
 class Project(ProjectBase):
     id: int
-    verification_level: int = 0
-    bankability_score: float = 0.0
-    last_verified: Optional[datetime] = None
-    created_at: Optional[datetime] = None
+    created_at: datetime.date
+    updated_at: datetime.date
 
-    model_config = ConfigDict(from_attributes=True)
-PY
+    class Config:
+        from_attributes = True
+
+class BankabilityScore(BaseModel):
+    technical_readiness: int = Field(..., ge=0, le=100)
+    financial_robustness: int = Field(..., ge=0, le=100)
+    legal_clarity: int = Field(..., ge=0, le=100)
+    esg_compliance: int = Field(..., ge=0, le=100)
+    overall_score: float = Field(..., ge=0, le=100)
+    risk_flags: List[str] = []
+    last_verified: datetime.date
+
+class VerificationBase(BaseModel):
+    level: VerificationLevel
+    bankability: Optional[BankabilityScore] = None
+
+class VerificationCreate(VerificationBase):
+    project_id: int
+
+class Verification(VerificationBase):
+    id: int
+    project_id: int
+
+    class Config:
+        from_attributes = True
+
+class InvestorBase(BaseModel):
+    fund_name: str
+    aum: Optional[float] = None
+    ticket_size_min: float
+    ticket_size_max: float
+    instruments: List[Instrument]
+    target_irr: Optional[float] = None
+    country_focus: List[str]
+    sector_focus: List[Sector]
+    esg_constraints: Optional[str] = None
+
+class InvestorCreate(InvestorBase):
+    pass
+
+class Investor(InvestorBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class IntroductionBase(BaseModel):
+    message: Optional[str] = None
+    nda_executed: bool = False
+    sponsor_approved: bool = False
+    status: str = "Pending"
+
+class IntroductionCreate(IntroductionBase):
+    investor_id: int
+    project_id: int
+
+class Introduction(IntroductionBase):
+    id: int
+    investor_id: int
+    project_id: int
+
+    class Config:
+        from_attributes = True
+
+# schemas.py (add after existing schemas)
+from datetime import datetime
+
+class DataRoomBase(BaseModel):
+    project_id: int
+    nda_required: bool = True
+    access_users: Optional[List[int]] = None
+    documents: Optional[Dict[str, str]] = None
+
+class DataRoomCreate(DataRoomBase):
+    pass
+
+class DataRoom(DataRoomBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class AnalyticReportBase(BaseModel):
+    title: str
+    sector: Optional[Sector] = None
+    country: Optional[str] = None
+    content: str
+
+class AnalyticReportCreate(AnalyticReportBase):
+    pass
+
+class AnalyticReport(AnalyticReportBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class EventBase(BaseModel):
+    name: str
+    description: str
+    event_date: date
+    type: str
+    projects_involved: Optional[List[int]] = None
+
+class EventCreate(EventBase):
+    pass
+
+class Event(EventBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+# schemas.py (add)
+from pydantic import BaseModel
+
+class UserBase(BaseModel):
+    username: str
+    role: str
+
+class UserCreate(UserBase):
+    password: str
+
+class User(UserBase):
+    id: int
+
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class EventBase(BaseModel):
+    name: str
+    description: str
+    event_date: date  # This should now resolve to the imported date class
+    type: str
+    projects_involved: Optional[List[int]] = None
+
+class EventCreate(EventBase):
+    pass
+
+class Event(EventBase):
+    id: int
+
+    class Config:
+        from_attributes = True

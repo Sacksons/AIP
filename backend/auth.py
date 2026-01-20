@@ -1,22 +1,16 @@
-# security.py
-# This file encapsulates security dependencies and utilities for the AIP platform.
-# It includes JWT authentication logic, password hashing, and role-based access controls.
-# This enhances AIP's secure data rooms and deal workflows by ensuring role-based access,
-# protecting sensitive project intelligence and reducing risks in connecting African infrastructure
-# projects with global capital.
-
+# auth.py (new file)
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from backend.models import User
 from backend.database import get_db
-from backend.schemas import User as UserSchema
+from backend.schemas import Token, User
 
-SECRET_KEY = "your-secret-key"  # Load from env in production: os.getenv('SECRET_KEY')
+SECRET_KEY = "your-secret-key"  # Change to env var in production
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -39,7 +33,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> UserSchema:
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -55,9 +49,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(User).filter(User.username == username).first()
     if user is None:
         raise credentials_exception
-    return UserSchema.from_orm(user)
+    return user
 
-def get_current_admin(current_user: UserSchema = Depends(get_current_user)) -> UserSchema:
+async def get_current_admin(current_user: User = Depends(get_current_user)):
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
