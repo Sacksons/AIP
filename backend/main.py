@@ -20,6 +20,9 @@ _static_dir = Path(__file__).parent / "static"
 if _static_dir.exists():
     app.mount("/", StaticFiles(directory=str(_static_dir), html=True), name="frontend")
 
+@app.get("/")
+# def root():
+#     return {"message": "API is running"}
 
 app = FastAPI(title="AIP API", version="1.0")
 
