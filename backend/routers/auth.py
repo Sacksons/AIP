@@ -15,8 +15,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/users/", response_model=User)
 def create_user_route(user: UserCreate, db: Session = Depends(get_db)):
     """Create a new user with hashed password."""
-    # Hash the password before storing
-    hashed_password = get_password_hash(user.password)
+    # Hash the password before storing (truncate to 72 bytes for bcrypt limit)
+    password = user.password[:72] if user.password else ""
+    hashed_password = get_password_hash(password)
     db_user = models.User(
         username=user.username,
         hashed_password=hashed_password,

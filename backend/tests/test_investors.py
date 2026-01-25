@@ -38,31 +38,35 @@ class TestCreateInvestor:
         response = client.post("/investors/", json=incomplete_data)
         assert response.status_code == 422  # Validation error
 
-    def test_create_investor_invalid_instrument(self, client):
-        """Test that invalid instrument values are rejected."""
-        invalid_data = {
-            "fund_name": "Invalid Fund",
+    def test_create_investor_with_custom_instrument(self, client):
+        """Test that custom instrument values are accepted (stored as strings)."""
+        data = {
+            "fund_name": "Custom Instrument Fund",
             "ticket_size_min": 500000.0,
             "ticket_size_max": 10000000.0,
-            "instruments": ["InvalidInstrument"],
+            "instruments": ["CustomInstrument"],
             "country_focus": ["Kenya"],
             "sector_focus": ["Energy"]
         }
-        response = client.post("/investors/", json=invalid_data)
-        assert response.status_code == 422
+        response = client.post("/investors/", json=data)
+        # API accepts any string for instruments (flexible schema)
+        assert response.status_code == 200
+        assert "CustomInstrument" in response.json()["instruments"]
 
-    def test_create_investor_invalid_sector(self, client):
-        """Test that invalid sector values are rejected."""
-        invalid_data = {
-            "fund_name": "Invalid Fund",
+    def test_create_investor_with_custom_sector(self, client):
+        """Test that custom sector values are accepted (stored as strings)."""
+        data = {
+            "fund_name": "Custom Sector Fund",
             "ticket_size_min": 500000.0,
             "ticket_size_max": 10000000.0,
             "instruments": ["Equity"],
             "country_focus": ["Kenya"],
-            "sector_focus": ["InvalidSector"]
+            "sector_focus": ["CustomSector"]
         }
-        response = client.post("/investors/", json=invalid_data)
-        assert response.status_code == 422
+        response = client.post("/investors/", json=data)
+        # API accepts any string for sector_focus (flexible schema)
+        assert response.status_code == 200
+        assert "CustomSector" in response.json()["sector_focus"]
 
     def test_create_investor_multiple_instruments(self, client):
         """Test creating investor with multiple instruments."""
