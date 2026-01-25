@@ -1,10 +1,9 @@
 # schemas.py
-from datetime import date, datetime  # Make sure this line is at the top
+from datetime import date, datetime
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict
-from enum import Enum
-import datetime
 from backend.models import Sector, ProjectStage, VerificationLevel, Instrument
+
 
 class ProjectBase(BaseModel):
     name: str = Field(..., description="Project name")
@@ -15,8 +14,8 @@ class ProjectBase(BaseModel):
     stage: ProjectStage
     estimated_capex: float
     funding_gap: Optional[float] = None
-    timeline_fid: Optional[datetime.date] = None
-    timeline_cod: Optional[datetime.date] = None
+    timeline_fid: Optional[date] = None
+    timeline_cod: Optional[date] = None
     revenue_model: str
     offtaker: Optional[str] = None
     tariff_mechanism: Optional[str] = None
@@ -31,16 +30,19 @@ class ProjectBase(BaseModel):
     permits_status: Optional[str] = None
     attachments: Optional[Dict[str, str]] = None
 
+
 class ProjectCreate(ProjectBase):
     pass
 
+
 class Project(ProjectBase):
     id: int
-    created_at: datetime.date
-    updated_at: datetime.date
+    created_at: date
+    updated_at: date
 
     class Config:
         from_attributes = True
+
 
 class BankabilityScore(BaseModel):
     technical_readiness: int = Field(..., ge=0, le=100)
@@ -49,14 +51,17 @@ class BankabilityScore(BaseModel):
     esg_compliance: int = Field(..., ge=0, le=100)
     overall_score: float = Field(..., ge=0, le=100)
     risk_flags: List[str] = []
-    last_verified: datetime.date
+    last_verified: date
+
 
 class VerificationBase(BaseModel):
     level: VerificationLevel
     bankability: Optional[BankabilityScore] = None
 
+
 class VerificationCreate(VerificationBase):
     project_id: int
+
 
 class Verification(VerificationBase):
     id: int
@@ -64,6 +69,7 @@ class Verification(VerificationBase):
 
     class Config:
         from_attributes = True
+
 
 class InvestorBase(BaseModel):
     fund_name: str
@@ -76,8 +82,10 @@ class InvestorBase(BaseModel):
     sector_focus: List[Sector]
     esg_constraints: Optional[str] = None
 
+
 class InvestorCreate(InvestorBase):
     pass
+
 
 class Investor(InvestorBase):
     id: int
@@ -85,15 +93,18 @@ class Investor(InvestorBase):
     class Config:
         from_attributes = True
 
+
 class IntroductionBase(BaseModel):
     message: Optional[str] = None
     nda_executed: bool = False
     sponsor_approved: bool = False
     status: str = "Pending"
 
+
 class IntroductionCreate(IntroductionBase):
     investor_id: int
     project_id: int
+
 
 class Introduction(IntroductionBase):
     id: int
@@ -103,8 +114,6 @@ class Introduction(IntroductionBase):
     class Config:
         from_attributes = True
 
-# schemas.py (add after existing schemas)
-from datetime import datetime
 
 class DataRoomBase(BaseModel):
     project_id: int
@@ -112,8 +121,10 @@ class DataRoomBase(BaseModel):
     access_users: Optional[List[int]] = None
     documents: Optional[Dict[str, str]] = None
 
+
 class DataRoomCreate(DataRoomBase):
     pass
+
 
 class DataRoom(DataRoomBase):
     id: int
@@ -122,14 +133,17 @@ class DataRoom(DataRoomBase):
     class Config:
         from_attributes = True
 
+
 class AnalyticReportBase(BaseModel):
     title: str
     sector: Optional[Sector] = None
     country: Optional[str] = None
     content: str
 
+
 class AnalyticReportCreate(AnalyticReportBase):
     pass
+
 
 class AnalyticReport(AnalyticReportBase):
     id: int
@@ -138,6 +152,7 @@ class AnalyticReport(AnalyticReportBase):
     class Config:
         from_attributes = True
 
+
 class EventBase(BaseModel):
     name: str
     description: str
@@ -145,23 +160,26 @@ class EventBase(BaseModel):
     type: str
     projects_involved: Optional[List[int]] = None
 
+
 class EventCreate(EventBase):
     pass
+
 
 class Event(EventBase):
     id: int
 
     class Config:
         from_attributes = True
-# schemas.py (add)
-from pydantic import BaseModel
+
 
 class UserBase(BaseModel):
     username: str
     role: str
 
+
 class UserCreate(UserBase):
     password: str
+
 
 class User(UserBase):
     id: int
@@ -169,22 +187,7 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
-
-class EventBase(BaseModel):
-    name: str
-    description: str
-    event_date: date  # This should now resolve to the imported date class
-    type: str
-    projects_involved: Optional[List[int]] = None
-
-class EventCreate(EventBase):
-    pass
-
-class Event(EventBase):
-    id: int
-
-    class Config:
-        from_attributes = True

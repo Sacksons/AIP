@@ -1,4 +1,4 @@
-# main.py (updated with correct indentation to fix IndentationError)
+# main.py
 from fastapi import FastAPI
 from backend.models import Base
 from backend.routers.projects import router as projects_router
@@ -16,22 +16,21 @@ from backend.database import engine
 from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 
-_static_dir = Path(__file__).parent / "static"
-if _static_dir.exists():
-    app.mount("/", StaticFiles(directory=str(_static_dir), html=True), name="frontend")
-
-@app.get("/")
-# def root():
-#     return {"message": "API is running"}
-
+# Create FastAPI app first
 app = FastAPI(title="AIP API", version="1.0")
 
-# Temporary: Drop all tables to reset schema (comment out after use if needed)
-Base.metadata.drop_all(bind=engine)
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
+
+# Mount static files after app is created
+_static_dir = Path(__file__).parent / "static"
+if _static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(_static_dir), html=True), name="frontend")
 
 
 app.include_router(projects_router)
