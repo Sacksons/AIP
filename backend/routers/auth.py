@@ -1,5 +1,5 @@
-# routers/auth.py (new)
-from fastapi import APIRouter, Depends, HTTPException
+# routers/auth.py
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.schemas import UserCreate, User, Token
 from backend.crud import create_user, authenticate_user

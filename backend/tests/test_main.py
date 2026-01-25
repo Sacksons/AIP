@@ -1,15 +1,20 @@
-# @pytest.fixture(scope="function")
-# def test_db():
-#     Base.metadata.create_all(bind=test_engine)
-#     yield
-#     Base.metadata.drop_all(bind=test_engine)
+# tests/test_main.py
+"""
+Basic API tests for the main application.
+"""
+import pytest
 
-# def test_create_project(test_db):
-#     response = client.post(
-#         "/projects/",
-#         json={"name": "Test Project", "sector": "Energy", "country": "Nigeria"}
-#     )
-#     assert response.status_code == 200
-#     data = response.json()
-#     assert data["name"] == "Test Project"
-#     assert data["verification_level"] == 0
+
+class TestAPIRoot:
+    """Tests for root API endpoints."""
+
+    def test_health_check(self, client):
+        """Test the health check endpoint returns healthy status."""
+        response = client.get("/health")
+        assert response.status_code == 200
+        assert response.json() == {"status": "healthy"}
+
+    def test_invalid_endpoint(self, client):
+        """Test that invalid endpoints return 404."""
+        response = client.get("/nonexistent-endpoint")
+        assert response.status_code == 404
