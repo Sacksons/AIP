@@ -1,6 +1,8 @@
 # routers/data_rooms.py
+import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from typing import List
 from backend.schemas import DataRoom, DataRoomCreate
 from backend.crud import create_data_room, get_data_room
 from backend.database import get_db
