@@ -153,13 +153,16 @@ def authenticate_user(db: Session, username: str, password: str):
     if not user:
         return None
 
+    # Truncate password to 72 bytes for bcrypt limit
+    truncated_password = password[:72] if password else ""
+
     # Prefer Passlib hash verification if available
     try:
         from passlib.context import CryptContext
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        ok = pwd_context.verify(password, user.hashed_password)
+        ok = pwd_context.verify(truncated_password, user.hashed_password)
     except Exception:
         # Fallback for early dev (NOT for production)
-        ok = password == getattr(user, "hashed_password", "")
+        ok = truncated_password == getattr(user, "hashed_password", "")
 
     return user if ok else None
