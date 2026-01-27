@@ -1,10 +1,26 @@
 # requirements.txt
-fastapi==0.104.1
-uvicorn==0.24.0
-sqlalchemy==2.0.23
-psycopg2-binary==2.9.9
-pydantic==2.5.2
-python-dotenv==1.0.0  # For loading env vars like DB URL
+
+# Core framework
+fastapi>=0.100.0,<1.0.0
+uvicorn>=0.24.0
+starlette>=0.27.0
+
+# Database
+sqlalchemy>=2.0.0,<3.0.0
+psycopg2-binary>=2.9.0
+
+# Data validation
+pydantic>=2.0.0,<3.0.0
+
+# Environment
+python-dotenv>=1.0.0
+
+# Authentication & Security
+passlib[bcrypt]>=1.7.4
+python-jose[cryptography]>=3.3.0
+bcrypt>=4.0.0
+
+# Testing
 pytest>=7.0.0
 pytest-asyncio>=0.21.0
-httpx>=0.24.0
+httpx>=0.24.0,<1.0.0

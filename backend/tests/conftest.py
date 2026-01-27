@@ -3,7 +3,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from starlette.testclient import TestClient
+from fastapi.testclient import TestClient
 
 from backend.database import Base, get_db
 from backend.main import app
@@ -43,9 +43,9 @@ def client(db_session):
 
     app.dependency_overrides[get_db] = override_get_db
 
-    # Use Starlette's TestClient directly - it handles httpx internally
-    with TestClient(app, raise_server_exceptions=False) as test_client:
-        yield test_client
+    # Use FastAPI's TestClient - handles httpx compatibility internally
+    test_client = TestClient(app)
+    yield test_client
 
     app.dependency_overrides.clear()
 
