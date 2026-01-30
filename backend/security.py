@@ -24,10 +24,14 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    # Truncate to 72 bytes for bcrypt limit
+    truncated = plain_password[:72] if plain_password else ""
+    return pwd_context.verify(truncated, hashed_password)
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    # Truncate to 72 bytes for bcrypt limit
+    truncated = password[:72] if password else ""
+    return pwd_context.hash(truncated)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
